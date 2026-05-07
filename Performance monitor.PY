@@ -106,7 +106,7 @@ class SparklineCanvas(tk.Canvas):
 
 # ── 메인 앱 ───────────────────────────────────────────────────
 class PerfMonitor(tk.Tk):
-    def __init__(self):
+    def __init__(self, start_minimized=False):
         super().__init__()
         self.title("성능 모니터")
         self.geometry("300x310")
@@ -115,6 +115,7 @@ class PerfMonitor(tk.Tk):
         self.overrideredirect(True)   # 타이틀바 숨김 → 직접 그림
 
         self._tray_icon = None
+        self._start_minimized = start_minimized
 
         # Always on top 상태
         self._always_on_top = False
@@ -144,6 +145,14 @@ class PerfMonitor(tk.Tk):
 
         self._build_ui()
         self._running = True
+        
+        # 트레이 아이콘 생성
+        self._create_tray_icon()
+        
+        # 시작 시 창 숨기기
+        if self._start_minimized:
+            self.withdraw()
+        
         self._update()
 
     # ── UI 구성 ──────────────────────────────────────────────
@@ -283,9 +292,8 @@ class PerfMonitor(tk.Tk):
         color = "#3498db" if self._always_on_top else "#27ae60"
         self._topmost_btn.config(fg=color)
 
-    def _minimize(self):
-        """창을 숨기고 트레이 아이콘 표시"""
-        self.withdraw()
+    def _create_tray_icon(self):
+        """트레이 아이콘 생성"""
         if self._tray_icon is None:
             # 간단한 아이콘 이미지 생성
             image = Image.new('RGB', (64, 64), color=(79, 195, 247))  # 파란색
@@ -294,7 +302,12 @@ class PerfMonitor(tk.Tk):
                 pystray.MenuItem("보이기", self._show_window),
                 pystray.MenuItem("종료", self._quit)
             )
-        threading.Thread(target=self._tray_icon.run, daemon=True).start()
+            threading.Thread(target=self._tray_icon.run, daemon=True).start()
+
+    def _minimize(self):
+        """창을 숨기고 트레이 아이콘 표시"""
+        self.withdraw()
+        self._create_tray_icon()
 
     def _show_window(self):
         """창을 다시 보임"""
