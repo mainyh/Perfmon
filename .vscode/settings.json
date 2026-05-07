@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^d:\\\\GIT\\\\Perfmon\\\\\\.venv\\\\Scripts\\\\python\\.exe -m PyInstaller \"Performance monitor\\.spec\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

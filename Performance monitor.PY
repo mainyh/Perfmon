@@ -112,6 +112,16 @@ class PerfMonitor(tk.Tk):
         self.geometry("300x310")
         self.resizable(False, False)
         self.configure(bg=BG_MAIN)
+        
+        # 우측 하단에 위치 설정
+        self.update_idletasks()
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        window_width = 300
+        window_height = 310
+        x = screen_width - window_width - 5  # 우측에서 10px 여백
+        y = screen_height - window_height - 50  # 하단에서 50px 여백 (작업표시줄 고려)
+        self.geometry(f"300x310+{x}+{y}")
         self.overrideredirect(True)   # 타이틀바 숨김 → 직접 그림
 
         self._tray_icon = None
@@ -299,7 +309,7 @@ class PerfMonitor(tk.Tk):
             image = Image.new('RGB', (64, 64), color=(79, 195, 247))  # 파란색
             self._tray_icon = pystray.Icon("Performance Monitor", image, "성능 모니터")
             self._tray_icon.menu = pystray.Menu(
-                pystray.MenuItem("보이기", self._show_window),
+                pystray.MenuItem("보이기", lambda icon, item: self.after(0, self._show_window)),
                 pystray.MenuItem("종료", self._quit)
             )
             threading.Thread(target=self._tray_icon.run, daemon=True).start()
@@ -312,9 +322,12 @@ class PerfMonitor(tk.Tk):
     def _show_window(self):
         """창을 다시 보임"""
         self.deiconify()
-        if self._tray_icon:
-            self._tray_icon.stop()
-            self._tray_icon = None
+        self.lift()
+        self.focus_force()
+        if not getattr(self, '_always_on_top', False):
+            self.attributes('-topmost', True)
+            self.after(100, lambda: self.attributes('-topmost', False))
+        # 트레이 아이콘은 앱 실행 동안 계속 유지합니다.
 
     # ── 데이터 업데이트 ──────────────────────────────────────
     def _collect(self):
